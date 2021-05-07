@@ -1,13 +1,13 @@
-node
+node('Nodejsinstance')
 {
 
-def mavenHome = tool name: "maven3.6.3"
+def mavenHome = tool name: "maven3.8.1"
 
 stage('CheckoutCode')
 {
 
-git branch: 'development', credentialsId: '6b3b5525-19af-437a-8aa5-a85472c25a21',
- url: 'https://github.com/kvr-ec-apps-mt/maven-web-application.git'
+git branch: 'development', credentialsId: 'cb5ebd2a-17da-4bf5-81fa-849e7b9833ca', url: 
+'https://github.com/kvr-ec-apps-mt/maven-web-application.git'
 }
 
 stage('Build')
@@ -17,7 +17,6 @@ sh "${mavenHome}/bin/mvn clean package"
 
 }
 
-/*
 stage('ExecuteSonarqubeReport')
 {
 
@@ -34,12 +33,16 @@ sh "${mavenHome}/bin/mvn deploy"
 
 stage('DeployAppIntoTomcatServer')
 {
-sshagent(['9776c03c-19ca-45d1-93ad-419a6893e4ea']) {
- sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.232.136.124:/opt/apache-tomcat-9.0.41/webapps"
+sshagent(['846fd8d4-3463-462a-b2e4-9e73e0767eda']) {
+ sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.33.27:/opt/apache-tomcat-9.0.45/webapps/"
 }
+stage('SendEmailNotification')
+{
+emailext body: '''Build Over-Scriptedway
 
+
+Regards
+venkat''', subject: 'Build Over-Scriptedway', to: 'kvreddy0797@gmail.com'
 }
-*/
-
 }
-
+}

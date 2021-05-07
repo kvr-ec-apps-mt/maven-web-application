@@ -71,7 +71,83 @@ options{
  9980923226''', cc: 'devopstrainingblr@gmail.com', from: '', replyTo: '', subject: 'BuildOver!!', to: 'devopstrainingblr@gmail.com'
  }
  
- failure{
+ failure{pipeline{
+
+agent any
+
+tools{
+
+maven 'maven3.8.1'
+
+}
+triggers{
+pollSCM(* * * * *)
+}
+
+options{
+//Add the timestamp to the console output
+timestamps()
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '3'))
+}
+stages{
+   stage('CheckOutCode')
+    {
+    steps{
+    git branch: 'development', credentialsId: 'cb5ebd2a-17da-4bf5-81fa-849e7b9833ca', url: 
+'https://github.com/kvr-ec-apps-mt/maven-web-application.git'
+    }
+}
+ stage('Build')
+ {
+   steps{
+     sh "mvn clean package"
+    }
+}
+  stage('ExecuteSonarcubeReport')
+   {
+      steps{
+        sh "mvn sonar:sonar"
+      }
+  }
+   stage('UploadArtifactsintoNexus')
+   {
+      steps{
+        sh "mvn deploy"
+      }
+  }
+   stage('DeployAppIntoTomcatServer')
+   {
+      steps{
+         sshagent(['846fd8d4-3463-462a-b2e4-9e73e0767eda']) {
+        sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.33.27:/opt/apache-tomcat-9.0.45/webapps/"
+      }
+  }
+}
+
+ 
+}
+
+post{
+ 
+ 
+  success{
+     emailext body: '''Build Over- Declarative way
+
+
+Regards
+venkat''', subject: 'Build Over-Scriptedway', to: 'kvreddy0797@gmail.com'
+  }
+
+   failure{
+     emailext body: '''Build is failed- Declarative way
+
+
+Regards
+venkat''', subject: 'Build Over-Scriptedway', to: 'kvreddy0797@gmail.com'
+ }
+  }
+
+}
  mail bcc: 'devopstrainingblr@gmail.com', body: '''BuildOver!....
 
  Regards,
